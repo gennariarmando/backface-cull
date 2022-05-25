@@ -1,0 +1,6 @@
+# Set back-face culling mode to any model.
+# First entry: Model id from any ide file.
+# Second entry: (NONE, BACK, FRONT).
+0, NONE
+
+# endof
