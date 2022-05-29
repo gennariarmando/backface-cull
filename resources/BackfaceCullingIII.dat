@@ -1,6 +1,16 @@
 # Set back-face culling mode to any model.
-# First entry: Model id from any ide file.
-# Second entry: (NONE, BACK, FRONT).
-0, NONE
+# Usage: id/name, mode.
+# Warning: Increase list size if needed.
 
-# endof
+# Culling Mode:
+# NONE - Both front and back-facing triangles are drawn.
+# BACK - Only front-facing triangles are drawn.
+# FRONT - Only back-facing triangles are drawn.
+
+[DEFAULT]
+LIST, 5500, BACK
+
+[CUSTOM]
+player, NONE
+
+# eof

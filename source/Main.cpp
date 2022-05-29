@@ -1,16 +1,37 @@
 ﻿#include "plugin.h"
 #include "CRenderer.h"
+#include "CBaseModelInfo.h"
+#include "CModelInfo.h"
 #include <iostream>
 
 using namespace plugin;
 
 bool bInitialised;
-std::vector<int> modelsCullModeList(16000, rwCULLMODECULLNONE);
+std::vector<int> modelsCullModeList;
 
 class BackfaceCull {
 public:
     static void SetCullMode(int index) {
-        RwRenderStateSet(rwRENDERSTATECULLMODE, reinterpret_cast<void*>(modelsCullModeList[index]));
+        if (modelsCullModeList.capacity() > index)
+            RwRenderStateSet(rwRENDERSTATECULLMODE, reinterpret_cast<void*>(modelsCullModeList[index]));
+    }
+
+    static int GetIndexFromModelName(const char* name) {
+        int index = -1;
+        CBaseModelInfo* info = CModelInfo::GetModelInfo(name, &index);
+        return index;
+    }
+
+    static RwCullMode GetCullModeFromName(const char* name) {
+        RwCullMode mode = rwCULLMODECULLNONE;
+        if (!strcmp(name, "BACK")) {
+            mode = rwCULLMODECULLBACK;
+        }
+        else if (!strcmp(name, "FRONT")) {
+            mode = rwCULLMODECULLFRONT;
+        }
+
+        return mode;
     }
 
     BackfaceCull() {
@@ -24,7 +45,7 @@ public:
 #endif
         bInitialised = false;
 
-        Events::initRwEvent += [] {
+        Events::initGameEvent.after += [] {
             if (!bInitialised) {
 #ifdef GTA3
                 std::ifstream file(PLUGIN_PATH("BackfaceCullingIII.dat"));
@@ -33,23 +54,29 @@ public:
 #endif
                 if (file.is_open()) {
                     for (std::string line; getline(file, line);) {
-                        int index;
+                        int index = -1;
+                        char name[32];
                         char modeLit[8];
-                        char mode = rwCULLMODECULLNONE;
 
                         if (!line[0] || line[0] == '\t' || line[0] == ' ' || line[0] == '#' || line[0] == '[' || line[0] == ';')
                             continue;
 
-                        sscanf(line.c_str(), "%d, %s", &index, &modeLit);
-
-                        if (!strcmp(modeLit, "BACK")) {
-                            mode = rwCULLMODECULLBACK;
-                        }
-                        else if (!strcmp(modeLit, "FRONT")) {
-                            mode = rwCULLMODECULLFRONT;
+                        if (!strncmp(line.c_str(), "LIST", 4)) {
+                            sscanf(line.c_str(), "%[^, ], %d, %[^, ]", &name, &index, &modeLit);
+                            modelsCullModeList.resize(index, GetCullModeFromName(modeLit));
+                            continue;
                         }
 
-                        modelsCullModeList[index] = mode;
+                        if (line[0] >= '0' && line[0] <= '9')
+                            sscanf(line.c_str(), "%d, %s", &index, &modeLit);
+                        else {
+                            sscanf(line.c_str(), "%[^, ], %s", &name, &modeLit);
+                            index = GetIndexFromModelName(name);
+                        }
+
+                        if (index != -1 && modelsCullModeList.capacity() > index) {
+                            modelsCullModeList[index] = GetCullModeFromName(modeLit);
+                        }
                     }
                     file.close();
                 }
