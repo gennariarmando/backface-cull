@@ -12,6 +12,16 @@ LIST, 5500, BACK
 
 [CUSTOM]
 player, NONE
+fishstall03, NONE
+fishstall04, NONE
+new_chinaawning, NONE
+iten_chinatown37, NONE
+iten_chntown37b, NONE
+chinalanterns, NONE
+iten_chinatown2, NONE
+mak_Watertank3, NONE
+Chinabuilds08, NONE
+block_maindrag, NONE
 camo_netting, NONE
 newblokb, NONE
 Hotel5, NONE
